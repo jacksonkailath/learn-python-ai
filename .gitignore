@@ -1,0 +1,13 @@
+# Secrets
+.env*
+!.env.example
+
+# Virtualenv
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store

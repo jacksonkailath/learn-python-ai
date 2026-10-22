@@ -1,0 +1,33 @@
+# AI-Accelerated Python Bootcamp — course-wide dependency manifest
+#
+# Every package line below starts COMMENTED OUT on purpose. This file is
+# the packing list you fill as the course goes: when a section needs a
+# package, its README tells you to uncomment that section's lines here,
+# then rerun (with the venv active — prompt shows "(.venv)"):
+#
+#     uv pip install -r requirements.txt
+#
+# Rerunning is always safe — already-installed packages are skipped.
+# Your uncommented lines double as a record of how far you've come, and
+# rebuilding a broken venv reinstalls exactly what you've reached
+# (Section 2, part 6 explains this command and the two-command rebuild).
+#
+# Setting up outside the course and want everything at once?
+# Uncomment every package line and run the install once.
+
+# --- Files & Folders: pytest — your first install of the course Section 6 ---
+# pytest>=8.0
+
+# --- Section 7: Excel & CSV ---
+#openpyxl>=3.1
+
+# --- Section 8: Email & Scheduling ---
+# python-dotenv>=1.0
+#note: 
+#a .env file does nothing by itself. It's just a text file sitting in your folder
+#Neither Python nor the operating system reads it automatically. Something must load it — copy its lines into the process's environment variables. 
+#That's the entire job of the python-dotenv library
+
+# --- AI Capstone: Morning Market Brief ---
+# yfinance>=1.5
+# google-genai>=1.0

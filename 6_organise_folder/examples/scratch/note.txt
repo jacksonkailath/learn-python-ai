@@ -1,0 +1,1 @@
+write_text / read_text are the one-liner versions.

@@ -1,0 +1,4 @@
+groceries:
+- oat milk
+- coffee beans
+- bread

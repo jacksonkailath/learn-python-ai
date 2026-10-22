@@ -1,0 +1,79 @@
+# GitHub Actions workflow — run the Monday report in the cloud, for free.
+#
+# This is a COPY-ME TEMPLATE, not a live workflow. To use it, copy this file to
+#   .github/workflows/monday_report.yml
+# in YOUR OWN repo. It is
+# kept here, outside .github/, on purpose: a live workflow at the repo root
+# would try to fire every Monday in the course repo — and fail, since the course
+# repo has no secrets configured.
+#
+# The Python code does not change at all. The only new thing is WHERE it runs:
+# GitHub's servers instead of your laptop. That is the whole payoff of building
+# it cleanly (env-var config, no hardcoded secrets).
+
+name: Monday Report
+
+on:
+  # on is a keyword of github actions.
+  # specifies what events cause this workflow to run? trigger
+  # Scheduled runs. CRON IN GITHUB ACTIONS IS ALWAYS UTC — there is no local
+  # timezone here (this is Bug Hunt #11, one layer up). "0 13 * * 1" is
+  # 13:00 UTC every Monday = 9:00 AM US Eastern during summer (EDT, UTC-4).
+  # In winter (EST, UTC-5) that same line fires at 8:00 AM Eastern — see the
+  # daylight-saving note in the lecture. Pick the UTC hour that matches YOUR
+  # local 9am, and remember it drifts by an hour across DST.
+  schedule:
+    - cron: "0 13 * * 1"
+  #schedule is a github actions keyword.
+  #it is a list - this convention comes from github actions
+  #you could add below it - cron: "0 13 * * 4"     # if you want Thursday too
+
+  # Also let you trigger it by hand from the Actions tab — invaluable for
+  # testing without waiting for Monday.
+  workflow_dispatch:
+
+jobs:
+  #jobs is the what after on is when
+  send-report:
+    #send report is the name of the job
+    runs-on: ubuntu-latest
+    #picks the VM image. Ubuntu is the default choice because it's the cheapest (Windows and macOS runners bill at 2× and 10× the minutes)
+    #Minute is a billing unit: one minute of a runner's clock time, counted from when the job starts to when it ends. If your Monday report job takes 45 seconds, that rounds up to 1 minute. Four Mondays a month, 4 minutes used.
+    #a virtual machine is a server
+    #VM image is a snapshot of a disk — the complete filesystem of a machine, frozen. Operating system, preinstalled programs, config files, all of it. When a VM starts, it boots from a copy of that image.
+    steps:
+      #Steps run top-to-bottom, and the job stops at the first one that fails.
+      #Each is either uses: (borrow a published action - An action is a reusable step someone else wrote and published)
+      #or run: (shell command), never both.
+      - name: Check out the repo
+        uses: actions/checkout@v5
+        # This pulls the WHOLE repo onto the runner, including Section 7's
+        # sample_data/ CSVs — which is why monday_report.py finds them with the
+        # exact same sibling-folder path it uses on your laptop. Committed data
+        # travels with the code.
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: pip install openpyxl python-dotenv
+        # Just the two this pipeline needs (report_generator uses openpyxl;
+        # emailer uses python-dotenv). The rest of the report is the standard
+        # library. For a bigger project: pip install -r requirements.txt
+
+      - name: Send the report
+        env:
+          # These map GitHub's encrypted repository secrets → environment
+          # variables. load_dotenv() finds no .env on the runner, so it does
+          # nothing — and because it never overwrites a variable already set in
+          # the real environment, emailer.py reads these values with ZERO code
+          # change. Same discipline as your .env, a different vault.
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: python 8_send_email/project/monday_report.py --test
